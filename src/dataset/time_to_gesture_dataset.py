@@ -23,13 +23,25 @@ def compute_time_to_gesture(gesture_labels, max_value=200):
 
     return time_to
 
+def expand_gesture_labels(labels, back=5, forward=15):
+    labels = labels.copy()
+
+    for i in range(len(labels)):
+        if labels[i] != 0:  # gesture event
+            start = max(0, i - back)
+            end = min(len(labels), i + forward)
+
+            labels[start:end] = labels[i]
+
+    return labels
 
 class TimeToGestureDataset(Dataset):
-    def __init__(self, imu_data, gesture_labels, window_size=24, max_time=200):
+    def __init__(self, imu_data, gesture_labels, window_size=24,stride=5, max_time=200):
         self.data = imu_data
-        self.labels = gesture_labels
+        self.labels = expand_gesture_labels(gesture_labels, back=5, forward=15)
         self.window_size = window_size
         self.max_time = max_time
+        self.stride = stride 
 
         time_to = compute_time_to_gesture(self.labels, max_value=self.max_time)
         # self.time_to = np.log1p(time_to) / np.log1p(self.max_time)
@@ -43,7 +55,7 @@ class TimeToGestureDataset(Dataset):
     def build_samples(self):
         T = len(self.data)
 
-        for end in range(self.window_size, T - 1):
+        for end in range(self.window_size, T - 1, self.stride):
             start = end - self.window_size
 
             x_window = self.data[start:end]
