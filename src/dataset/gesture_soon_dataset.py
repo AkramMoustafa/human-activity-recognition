@@ -25,6 +25,21 @@ def expand_labels(labels, back=5):
             new_labels[start:i] = 1
     return new_labels
 
+def load_gesture_soon_dataset():
+    """
+    Wrapper that runs your full dataset pipeline
+    """
+    zip_path = "data/snaptic_logs.zip"
+    extract_dir = "data/logs"
+
+    extract_data(zip_path, extract_dir)
+
+    features, labels = load_all_data(extract_dir)
+
+    X, Y = create_clean_dataset(features, labels)
+
+    return X, Y
+
 def load_all_data(data_dir):
     files = glob.glob(os.path.join(data_dir, "*.csv"))
 
